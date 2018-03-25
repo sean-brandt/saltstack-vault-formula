@@ -1,20 +1,5 @@
 {% from "vault/map.jinja" import vault with context %}
 
-vault-group:
-  group.present:
-    - name: {{ vault.group }}
-
-vault-user:
-  user.present:
-    - name: {{ vault.user }}
-    - groups:
-      - {{ vault.group }}
-    - home: {{ salt['uuser.info'](vault.user)['home']|default('/etc/vault') }}
-    - createhome: false
-    - system: true
-    - require:
-      - group: vault-group
-
 /etc/vault:
   file.directory:
     - user: {{ vault.user }}

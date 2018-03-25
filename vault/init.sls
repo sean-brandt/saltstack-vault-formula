@@ -15,6 +15,21 @@ vault packages:
       {% endif %}
       {% endif %}
 
+vault-group:
+  group.present:
+    - name: {{ vault.group }}
+
+vault-user:
+  user.present:
+    - name: {{ vault.user }}
+    - groups:
+      - {{ vault.group }}
+    - home: {{ salt['uuser.info'](vault.user)['home']|default('/etc/vault') }}
+    - createhome: false
+    - system: true
+    - require:
+      - group: vault-group
+
 download vault:
   cmd.run:
     - name: curl --silent -L https://releases.hashicorp.com/vault/{{ vault.version }}/vault_{{ vault.version }}_linux_amd64.zip -o /tmp/vault_{{ vault.version }}_linux_amd64.zip
