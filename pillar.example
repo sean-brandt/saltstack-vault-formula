@@ -10,13 +10,15 @@ vault:
   max_lease_ttl: 43800h
   self_signed_cert:
     enabled: false
-  backend: {}
+  consul:
+    address: 127.0.0.1:8500
+    path: vault
   dev_mode: true
   secure_download: true
   service:
     type: upstart
-  user: root
-  group: root
+  user: vault
+  group: vault
   hashicorp_gpg_key: |
     -----BEGIN PGP PUBLIC KEY BLOCK-----
     Version: GnuPG v1

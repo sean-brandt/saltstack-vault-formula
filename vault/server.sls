@@ -1,52 +1,52 @@
 {% from "vault/map.jinja" import vault with context %}
-{%- if vault.self_signed_cert.enabled %}
-/usr/local/bin/self-cert-gen.sh:
-  file.managed:
-    - source: salt://vault/files/cert-gen.sh.jinja
-    - template: jinja
-    - user: root
-    - group: root
-    - mode: 644
 
-generate self signed SSL certs:
-  cmd.run:
-    - name: bash /usr/local/bin/cert-gen.sh {{ vault.self_signed_cert.hostname }} {{ vault.self_signed_cert.password }}
-    - cwd: /etc/vault
+vault-group:
+  group.present:
+    - name: {{ vault.group }}
+
+vault-user:
+  user.present:
+    - name: {{ vault.user }}
+    - groups:
+      - {{ vault.group }}
+    - home: {{ salt['uuser.info'](vault.user)['home']|default('/etc/vault') }}
+    - createhome: false
+    - system: true
     - require:
-      - file: /usr/local/bin/self-cert-gen.sh
-{% endif -%}
+      - group: vault-group
 
 /etc/vault:
   file.directory:
-    - user: root
-    - group: root
+    - user: {{ vault.user }}
+    - group: {{ vault.group }}
     - mode: 755
 
 /etc/vault/config:
   file.directory:
-    - user: root
-    - group: root
+    - user: {{ vault.user }}
+    - group: {{ vault.group }}
     - mode: 755
     - require:
       - file: /etc/vault
 
 /etc/vault/config/server.hcl:
-  file.managed:
-    - source: salt://vault/files/server.hcl.jinja
-    - template: jinja
-    - user: root
-    - group: root
-    - mode: 644
+  file.serialize:
+    - formatter: json
+    - dataset: {{ vault.config }}
+    - user: {{ vault.user }}
+    - group: {{ vault.group }}
+    - mode: 0640
     - require:
       - file: /etc/vault/config
+      - user: vault-user
 
 {%- if vault.service.type == 'systemd' %}
 /etc/systemd/system/vault.service:
   file.managed:
     - source: salt://vault/files/vault_systemd.service.jinja
     - template: jinja
-    - user: root
-    - group: root
+    - user: {{ vault.user }}
+    - group: {{ vault.group }}
     - mode: 644
     - require_in:
       - service: vault
@@ -56,8 +56,8 @@ generate self signed SSL certs:
   file.managed:
     - source: salt://vault/files/vault_upstart.conf.jinja
     - template: jinja
-    - user: root
-    - group: root
+    - user: {{ vault.user }}
+    - group: {{ vault.group }}
     - require_in:
       - service: vault
 {% endif -%}
@@ -66,9 +66,6 @@ vault:
   service.running:
     - enable: True
     - require:
-      {%- if vault.self_signed_cert.enabled %}
-      - cmd: generate self signed SSL certs
-      {% endif %}
       - file: /etc/vault/config/server.hcl
       - cmd: install vault
     - onchanges:
