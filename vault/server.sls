@@ -1,19 +1,5 @@
 {% from "vault/map.jinja" import vault with context %}
 
-/etc/vault:
-  file.directory:
-    - user: {{ vault.user }}
-    - group: {{ vault.group }}
-    - mode: 755
-
-/etc/vault/config:
-  file.directory:
-    - user: {{ vault.user }}
-    - group: {{ vault.group }}
-    - mode: 755
-    - require:
-      - file: /etc/vault
-
 /etc/vault/config/server.hcl:
   file.serialize:
     - formatter: json

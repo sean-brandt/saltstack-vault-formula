@@ -15,6 +15,20 @@ vault packages:
       {% endif %}
       {% endif %}
 
+/etc/vault:
+  file.directory:
+    - user: {{ vault.user }}
+    - group: {{ vault.group }}
+    - mode: 755
+
+/etc/vault/config:
+  file.directory:
+    - user: {{ vault.user }}
+    - group: {{ vault.group }}
+    - mode: 755
+    - require:
+      - file: /etc/vault
+
 vault-group:
   group.present:
     - name: {{ vault.group }}
