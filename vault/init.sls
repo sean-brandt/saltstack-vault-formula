@@ -24,7 +24,7 @@ vault-user:
     - name: {{ vault.user }}
     - groups:
       - {{ vault.group }}
-    - home: {{ salt['uuser.info'](vault.user)['home']|default('/etc/vault') }}
+    - home: {{ salt['user.info'](vault.user)['home']|default('/etc/vault') }}
     - createhome: false
     - system: true
     - require:
